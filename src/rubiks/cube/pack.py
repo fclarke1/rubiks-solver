@@ -25,6 +25,8 @@ duplicates, PDB lookups return random values). Test ruthlessly:
 
 from __future__ import annotations
 
+from math import factorial
+
 from rubiks.cube.state import CORNER_COUNT, EDGE_COUNT, CubeState
 
 # ----- orientation packing (base-N digits ↔ integer) -----
@@ -56,33 +58,29 @@ def unpack_orientation(packed: int, length: int, base: int) -> tuple[int, ...]:
 
 def rank_permutation(perm: tuple[int, ...]) -> int:
     """Lehmer-rank a permutation of range(len(perm)) into 0..n!-1.
-
-    Standard algorithm:
-        rank = 0
-        available = list(range(n))
-        for i in range(n):
-            idx = available.index(perm[i])
-            rank = rank * (n - i) + idx
-            available.pop(idx)
-        return rank
-
     Naive complexity is O(n^2) because of the .index lookup. For n=8 or n=12
     that's negligible; for larger n you'd use a Fenwick tree to get O(n log n).
     """
-    raise NotImplementedError
+    rank = 0
+    n = len(perm)
+    available = list(range(n))
+    for i in range(n):
+        idx = available.index(perm[i])
+        rank = rank * (n - i) + idx
+        available.pop(idx)
+    return rank
 
 
 def unrank_permutation(rank: int, n: int) -> tuple[int, ...]:
     """Inverse of rank_permutation. Recover the unique permutation of range(n)
-    whose Lehmer rank is `rank`. Must satisfy:
-
-        rank_permutation(unrank_permutation(r, n)) == r        for 0 <= r < n!
-        unrank_permutation(rank_permutation(p), len(p)) == p
-
-    Algorithm: divide `rank` by descending factorials to recover the Lehmer
-    digits, then walk the `available` list as in rank_permutation but in reverse.
+    whose Lehmer rank is `rank`
     """
-    raise NotImplementedError
+    available = list(range(n))
+    result: list[int] = []
+    for i in range(n):
+        idx, rank = divmod(rank, factorial(n - 1 - i))
+        result.append(available.pop(idx))
+    return tuple(result)
 
 
 # ----- whole-state pack / unpack -----

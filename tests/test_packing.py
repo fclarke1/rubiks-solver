@@ -6,10 +6,12 @@ apply() logic are wrong — the test won't tell you which, but a failing
 test on a single move usually points straight at that move's definition.
 """
 
+from itertools import permutations
 import pytest
 import random
+import math
 
-from rubiks.cube.pack import pack_orientation, unpack_orientation
+from rubiks.cube.pack import pack_orientation, unpack_orientation, rank_permutation, unrank_permutation
 
 
 @pytest.mark.parametrize("seed", range(10))
@@ -17,8 +19,8 @@ def test_pack_unpack(seed: int):
     rng = random.Random(seed)
     corner_base = 3
     edge_base = 2
-    corner_length = 4
-    edge_length = 4
+    corner_length = 8
+    edge_length = 12
 
     co_state = tuple(rng.choice(range(corner_base)) for _ in range(corner_length))
     eo_state = tuple(rng.choice(range(edge_base)) for _ in range(edge_length))
@@ -29,3 +31,14 @@ def test_pack_unpack(seed: int):
     eo_unpack = unpack_orientation(eo_pack, edge_length, edge_base)
 
     assert (eo_unpack == eo_state) and (co_unpack == co_state)
+
+
+@pytest.mark.parametrize("n", range(5))
+def test_rank_permutation(n:int):
+    seen_ranks = set()
+    for p in permutations(range(n)):
+        r = rank_permutation(p)
+        seen_ranks.add(r)
+        assert (r >= 0) and (r < math.factorial(n))
+        assert p == unrank_permutation(r, n)
+    assert len(seen_ranks) == math.factorial(n)
