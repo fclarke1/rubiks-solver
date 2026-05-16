@@ -27,7 +27,12 @@ from __future__ import annotations
 
 from math import factorial
 
-from rubiks.cube.state import CORNER_COUNT, EDGE_COUNT, CubeState
+from rubiks.cube.state import CORNER_COUNT, EDGE_COUNT, CORNER_BASE, EDGE_BASE, CubeState
+
+
+_3_POW_7 = 3**7
+_12_FACTORIAL = factorial(12)
+_2_POW_11 = 2**11
 
 # ----- orientation packing (base-N digits ↔ integer) -----
 
@@ -93,23 +98,35 @@ def pack_state(state: CubeState) -> int:
     by each component's size in turn. The conservation laws let you drop the
     last corner orientation (determined by the other 7) and the last edge
     orientation (determined by the other 11) — saving a few bits.
-
-    Suggested composition (matters only for consistency; pick one and stick):
-        result = rank_permutation(state.cp)                          # in 0..8!-1
-        result = result * 3**7 + pack_orientation(state.co[:7], 3)   # in 0..8!·3^7-1
-        result = result * 12! + rank_permutation(state.ep)
-        result = result * 2**11 + pack_orientation(state.eo[:11], 2)
     """
-    raise NotImplementedError
+
+    result = rank_permutation(state.cp)
+    result = result * _3_POW_7 + pack_orientation(state.co[:7], 3) 
+    result = result * _12_FACTORIAL + rank_permutation(state.ep)
+    result = result * _2_POW_11 + pack_orientation(state.eo[:11], 2)
+    return result
 
 
 def unpack_state(packed: int) -> CubeState:
     """Inverse of pack_state. Recovers cp, co, ep, eo by peeling off each
     component in reverse order (// and % the corresponding base, then unrank).
-
-    Must round-trip: unpack_state(pack_state(s)) == s for every valid state.
     """
-    raise NotImplementedError
+    result, eo_packed = divmod(packed, _2_POW_11)
+    result, ep_ranked = divmod(result, _12_FACTORIAL)
+    cp_ranked, co_packed = divmod(result, _3_POW_7)
+
+    co_short = unpack_orientation(co_packed, CORNER_COUNT - 1, CORNER_BASE)
+    eo_short = unpack_orientation(eo_packed, EDGE_COUNT - 1, EDGE_BASE)
+    co_last = -sum(co_short) % CORNER_BASE
+    eo_last = -sum(eo_short) % EDGE_BASE
+
+    result_state = CubeState(
+        cp = unrank_permutation(cp_ranked, CORNER_COUNT),
+        co = co_short + (co_last,),
+        ep = unrank_permutation(ep_ranked, EDGE_COUNT),
+        eo = eo_short + (eo_last,)
+    )
+    return result_state
 
 
 # ----- corner-only ranking (PDB index) -----

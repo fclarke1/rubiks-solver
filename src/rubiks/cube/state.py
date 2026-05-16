@@ -61,6 +61,8 @@ if TYPE_CHECKING:
 
 CORNER_COUNT = 8
 EDGE_COUNT = 12
+CORNER_BASE = 3
+EDGE_BASE = 2
 
 
 class CubeState(BaseModel):
@@ -120,7 +122,7 @@ class CubeState(BaseModel):
         """
         return CubeState(
             cp = tuple(self.cp[move.cp_perm[i]] for i in range(CORNER_COUNT)),
-            co = tuple((self.co[move.cp_perm[i]] + move.co_delta[i]) % 3 for i in range(CORNER_COUNT)),
+            co = tuple((self.co[move.cp_perm[i]] + move.co_delta[i]) % CORNER_BASE for i in range(CORNER_COUNT)),
             ep = tuple(self.ep[move.ep_perm[i]] for i in range(EDGE_COUNT)),
-            eo = tuple((self.eo[move.ep_perm[i]] + move.eo_delta[i]) % 2 for i in range(EDGE_COUNT))
+            eo = tuple((self.eo[move.ep_perm[i]] + move.eo_delta[i]) % EDGE_BASE for i in range(EDGE_COUNT))
         )
