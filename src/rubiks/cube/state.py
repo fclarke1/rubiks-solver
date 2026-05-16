@@ -116,19 +116,11 @@ class CubeState(BaseModel):
 
     def apply(self, move: Move) -> CubeState:
         """Apply a single move, returning a new CubeState.
-
-        Implementation sketch (see plan: "Moves as lookup tables"):
-
-            new_cp[i] = self.cp[move.cp_perm[i]]
-            new_co[i] = (self.co[move.cp_perm[i]] + move.co_delta[i]) % 3
-            new_ep[i] = self.ep[move.ep_perm[i]]
-            new_eo[i] = (self.eo[move.ep_perm[i]] + move.eo_delta[i]) % 2
-
         Return a NEW CubeState (the model is frozen — never mutate self).
         """
         return CubeState(
-            cp = (self.cp[move.cp_perm[i]] for i in range(CORNER_COUNT)),
-            co = ((self.co[move.cp_perm[i]] + move.co_delta[i]) % 3 for i in range(CORNER_COUNT)),
-            ep = (self.ep[move.ep_perm[i]] for i in range(EDGE_COUNT)),
-            eo = ((self.eo[move.ep_perm[i]] + move.eo_delta[i]) % 2 for i in range(EDGE_COUNT))
+            cp = tuple(self.cp[move.cp_perm[i]] for i in range(CORNER_COUNT)),
+            co = tuple((self.co[move.cp_perm[i]] + move.co_delta[i]) % 3 for i in range(CORNER_COUNT)),
+            ep = tuple(self.ep[move.ep_perm[i]] for i in range(EDGE_COUNT)),
+            eo = tuple((self.eo[move.ep_perm[i]] + move.eo_delta[i]) % 2 for i in range(EDGE_COUNT))
         )

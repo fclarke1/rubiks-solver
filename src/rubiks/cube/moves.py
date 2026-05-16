@@ -124,10 +124,10 @@ def compose(first: Move, second: Move, name: str) -> Move:
     """
     result = Move(
         name = name,
-        cp_perm = (first.cp_perm[second.cp_perm[i]] for i in range(CORNER_COUNT)),
-        co_delta = ((first.co_delta[second.cp_perm[i]] + second.co_delta[i]) % 3 for i in range(CORNER_COUNT)),
-        ep_perm = (first.ep_perm[second.ep_perm[i]] for i in range(EDGE_COUNT)),
-        eo_delta = ((first.eo_delta[second.ep_perm[i]] + second.eo_delta[i]) % 2 for i in range(EDGE_COUNT))
+        cp_perm =   tuple(first.cp_perm[second.cp_perm[i]] for i in range(CORNER_COUNT)),
+        co_delta =  tuple((first.co_delta[second.cp_perm[i]] + second.co_delta[i]) % 3 for i in range(CORNER_COUNT)),
+        ep_perm =   tuple(first.ep_perm[second.ep_perm[i]] for i in range(EDGE_COUNT)),
+        eo_delta =  tuple((first.eo_delta[second.ep_perm[i]] + second.eo_delta[i]) % 2 for i in range(EDGE_COUNT))
     )
     return result
 
