@@ -66,9 +66,9 @@ class Move(BaseModel):
 
 U: Move = Move(
     name="U",
-    cp_perm=(3,2,1,0,4,5,6,7),
+    cp_perm=(3,0,1,2,4,5,6,7),
     co_delta=(0,0,0,0,0,0,0,0),
-    ep_perm=(3,2,1,0,4,5,6,7,8,9,10,11),
+    ep_perm=(3,0,1,2,4,5,6,7,8,9,10,11),
     eo_delta=(0,0,0,0,0,0,0,0,0,0,0,0)
 )
 D: Move = Move(
