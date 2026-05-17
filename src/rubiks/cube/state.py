@@ -52,9 +52,8 @@ Once chosen, document them in this docstring — moves.py must agree.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Self
-
-from pydantic import BaseModel, ConfigDict, model_validator
+from typing import TYPE_CHECKING
+from dataclasses import dataclass
 
 if TYPE_CHECKING:
     from rubiks.cube.moves import Move
@@ -69,7 +68,8 @@ _SOLVED_EP = tuple(range(EDGE_COUNT))
 _SOLVED_EO = (0,) * EDGE_COUNT
 
 
-class CubeState(BaseModel):
+@dataclass(frozen=True, slots=True)
+class CubeState():
     """Immutable 3x3 Rubik's cube state.
 
     `frozen=True` makes instances immutable and hashable (free dict/set keys).
@@ -84,28 +84,10 @@ class CubeState(BaseModel):
         eo[i] = orientation (0..1) of the edge in slot i
     """
 
-    model_config = ConfigDict(frozen=True)
-
     cp: tuple[int, ...]   # length 8, values 0..7
     co: tuple[int, ...]   # length 8, values 0..2
     ep: tuple[int, ...]   # length 12, values 0..11
     eo: tuple[int, ...]   # length 12, values 0..1
-
-    @model_validator(mode="after")
-    def _validate_shapes(self) -> Self:
-        if len(self.cp) != CORNER_COUNT or len(self.co) != CORNER_COUNT:
-            raise ValueError(f"cp and co must both have length {CORNER_COUNT}")
-        if len(self.ep) != EDGE_COUNT or len(self.eo) != EDGE_COUNT:
-            raise ValueError(f"ep and eo must both have length {EDGE_COUNT}")
-        if not all(0 <= v < CORNER_COUNT for v in self.cp):
-            raise ValueError("cp values must be in 0..7")
-        if not all(0 <= v < 3 for v in self.co):
-            raise ValueError("co values must be in 0..2")
-        if not all(0 <= v < EDGE_COUNT for v in self.ep):
-            raise ValueError("ep values must be in 0..11")
-        if not all(0 <= v < 2 for v in self.eo):
-            raise ValueError("eo values must be in 0..1")
-        return self
 
     @classmethod
     def solved(cls) -> CubeState:
@@ -131,7 +113,7 @@ class CubeState(BaseModel):
         cp = self.cp; co = self.co; ep = self.ep; eo = self.eo
         cp_p = move.cp_perm; co_d = move.co_delta
         ep_p = move.ep_perm; eo_d = move.eo_delta
-        return CubeState.model_construct(
+        return CubeState(
             cp=(cp[cp_p[0]], cp[cp_p[1]], cp[cp_p[2]], cp[cp_p[3]],
                 cp[cp_p[4]], cp[cp_p[5]], cp[cp_p[6]], cp[cp_p[7]]
             ),
