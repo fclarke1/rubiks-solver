@@ -63,6 +63,10 @@ CORNER_COUNT = 8
 EDGE_COUNT = 12
 CORNER_BASE = 3
 EDGE_BASE = 2
+_SOLVED_CP = tuple(range(CORNER_COUNT))
+_SOLVED_CO = (0,) * CORNER_COUNT
+_SOLVED_EP = tuple(range(EDGE_COUNT))
+_SOLVED_EO = (0,) * EDGE_COUNT
 
 
 class CubeState(BaseModel):
@@ -107,24 +111,46 @@ class CubeState(BaseModel):
     def solved(cls) -> CubeState:
         """The identity state: each cubie in its home slot, oriented."""
         return cls(
-            cp=tuple(range(CORNER_COUNT)),
-            co=(0,) * CORNER_COUNT,
-            ep=tuple(range(EDGE_COUNT)),
-            eo=(0,) * EDGE_COUNT,
+            cp=_SOLVED_CP,
+            co=_SOLVED_CO,
+            ep=_SOLVED_EP,
+            eo=_SOLVED_EO,
         )
 
     def is_solved(self) -> bool:
-        return self == CubeState.solved()
+        is_solved = (
+            self.cp     == _SOLVED_CP
+            and self.co == _SOLVED_CO
+            and self.ep == _SOLVED_EP
+            and self.eo == _SOLVED_EO
+        )
+        return is_solved
+    
 
     def apply(self, move: Move) -> CubeState:
-        """Apply a single move, returning a new CubeState.
-        Return a NEW CubeState (the model is frozen — never mutate self).
-        """
-        return CubeState(
-            cp = tuple(self.cp[move.cp_perm[i]] for i in range(CORNER_COUNT)),
-            co = tuple((self.co[move.cp_perm[i]] + move.co_delta[i]) % CORNER_BASE for i in range(CORNER_COUNT)),
-            ep = tuple(self.ep[move.ep_perm[i]] for i in range(EDGE_COUNT)),
-            eo = tuple((self.eo[move.ep_perm[i]] + move.eo_delta[i]) % EDGE_BASE for i in range(EDGE_COUNT))
+        cp = self.cp; co = self.co; ep = self.ep; eo = self.eo
+        cp_p = move.cp_perm; co_d = move.co_delta
+        ep_p = move.ep_perm; eo_d = move.eo_delta
+        return CubeState.model_construct(
+            cp=(cp[cp_p[0]], cp[cp_p[1]], cp[cp_p[2]], cp[cp_p[3]],
+                cp[cp_p[4]], cp[cp_p[5]], cp[cp_p[6]], cp[cp_p[7]]
+            ),
+            co=((co[cp_p[0]] + co_d[0]) % 3, (co[cp_p[1]] + co_d[1]) % 3,
+                (co[cp_p[2]] + co_d[2]) % 3, (co[cp_p[3]] + co_d[3]) % 3,
+                (co[cp_p[4]] + co_d[4]) % 3, (co[cp_p[5]] + co_d[5]) % 3,
+                (co[cp_p[6]] + co_d[6]) % 3, (co[cp_p[7]] + co_d[7]) % 3
+            ),
+            ep=(ep[ep_p[0]], ep[ep_p[1]], ep[ep_p[2]], ep[ep_p[3]],
+                ep[ep_p[4]], ep[ep_p[5]], ep[ep_p[6]], ep[ep_p[7]],
+                ep[ep_p[8]], ep[ep_p[9]], ep[ep_p[10]], ep[ep_p[11]]
+            ),
+            eo=((eo[ep_p[0]] + eo_d[0]) % 2, (eo[ep_p[1]] + eo_d[1]) % 2,
+                (eo[ep_p[2]] + eo_d[2]) % 2, (eo[ep_p[3]] + eo_d[3]) % 2,
+                (eo[ep_p[4]] + eo_d[4]) % 2, (eo[ep_p[5]] + eo_d[5]) % 2,
+                (eo[ep_p[6]] + eo_d[6]) % 2, (eo[ep_p[7]] + eo_d[7]) % 2,
+                (eo[ep_p[8]] + eo_d[8]) % 2, (eo[ep_p[9]] + eo_d[9]) % 2,
+                (eo[ep_p[10]] + eo_d[10]) % 2, (eo[ep_p[11]] + eo_d[11]) % 2
+            ),
         )
 
 

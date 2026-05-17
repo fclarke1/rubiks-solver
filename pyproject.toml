@@ -24,4 +24,5 @@ testpaths = ["tests"]
 [dependency-groups]
 dev = [
     "mypy>=2.1.0",
+    "snakeviz>=2.2.2",
 ]
