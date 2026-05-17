@@ -19,6 +19,8 @@ from rubiks.cube.moves import ALL_MOVES, Move
 from rubiks.cube.scramble import scramble
 from rubiks.cube.state import CubeState
 from rubiks.viz.ansi_net import render
+from rubiks.solver.ida_star import IDAStar
+from rubiks.solver.heuristic import ZeroHeuristic
 
 _MOVES_BY_NAME: dict[str, Move] = {m.name: m for m in ALL_MOVES}
 
@@ -72,8 +74,20 @@ def cmd_show(args: argparse.Namespace) -> None:
 def cmd_solve(args: argparse.Namespace) -> None:
     """Solve a cube produced by applying a move sequence to a solved cube.
     Placeholder until the solver lands."""
-    print("solve: not implemented yet — coming when the solver does", file=sys.stderr)
-    raise SystemExit(2)
+    moves = parse_moves(args.moves)
+    solved = CubeState.solved()
+    scramble_state = solved.apply_moves(moves)
+    moves_string = args.moves.replace(",", " ")
+    print(f"Scrambled Cube: {moves_string}")
+    print(render(scramble_state))
+
+    solver = IDAStar(ZeroHeuristic())
+    unscramble_moves = solver.solve(scramble_state)
+    unscramble_move_list = (m.name for m in unscramble_moves)
+    unscramble_move_string = " ".join(unscramble_move_list)
+    unscramble_state = scramble_state.apply_moves(unscramble_moves)
+    print(f"\n\n\nUnscramble Moves: {unscramble_move_string}")
+    print(render(unscramble_state))
 
 
 # ----- argparse setup -----
