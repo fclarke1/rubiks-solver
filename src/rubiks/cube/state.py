@@ -62,6 +62,8 @@ CORNER_COUNT = 8
 EDGE_COUNT = 12
 CORNER_BASE = 3
 EDGE_BASE = 2
+
+# Precompute the solved state
 _SOLVED_CP = tuple(range(CORNER_COUNT))
 _SOLVED_CO = (0,) * CORNER_COUNT
 _SOLVED_EP = tuple(range(EDGE_COUNT))
@@ -71,12 +73,6 @@ _SOLVED_EO = (0,) * EDGE_COUNT
 @dataclass(frozen=True, slots=True)
 class CubeState():
     """Immutable 3x3 Rubik's cube state.
-
-    `frozen=True` makes instances immutable and hashable (free dict/set keys).
-    Pydantic validates fields on every construction, which catches malformed
-    states immediately — useful during move-table development. The cost is
-    real on the hot search path; profile before committing to this for IDA*.
-
     Field semantics:
         cp[i] = id of the corner cubie currently sitting in slot i
         co[i] = orientation (0..2) of the corner in slot i

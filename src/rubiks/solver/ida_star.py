@@ -18,10 +18,11 @@ memory.
 
 from __future__ import annotations
 
+from types import NoneType
 from typing import Final
 import math
 
-from rubiks.cube.moves import ALL_MOVES, Move
+from rubiks.cube.moves import ALL_MOVES, ILLEGAL_PREVIOUS_BASE_MOVES, Move
 from rubiks.cube.state import CubeState
 from rubiks.solver.base import Heuristic
 
@@ -52,12 +53,14 @@ class IDAStar:
             if bound > _MAX_BOUND:
                 return None
 
+
     def _search(
         self,
         state: CubeState,
         path: list[Move],
         g: int,
         bound: int,
+        prev_move: Move|None=None
     ) -> object:
         """Recursive depth-bounded DFS. Returns either _FOUND, infinity (no
         result this bound), or the smallest f-value that was pruned at this
@@ -71,11 +74,25 @@ class IDAStar:
         
         min_next = math.inf
         for move in ALL_MOVES:
+            if not self.is_legal_move(prev_move, move):
+                continue
             path.append(move)
-            t = self._search(state.apply(move), path, g + 1, bound)
+            t = self._search(state.apply(move), path, g + 1, bound, prev_move=move)
             if t is _FOUND:
                 return _FOUND
             if t < min_next:
                 min_next = t
             path.pop()
         return min_next
+    
+        
+    @staticmethod
+    def is_legal_move(prev_move: Move|None, next_move: Move) -> bool:
+        if prev_move is None:
+            is_illegal_move = False
+        else:
+            is_illegal_move = (
+                prev_move.name[0] == next_move.name[0]
+                or ILLEGAL_PREVIOUS_BASE_MOVES[prev_move.name[0]]==next_move.name[0]
+            )
+        return not is_illegal_move

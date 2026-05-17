@@ -158,3 +158,12 @@ ALL_MOVES: tuple[Move, ...] = tuple(
     for base_m in BASE_MOVES
     for new_m in (base_m, inverse(base_m), compose(base_m, base_m, base_m.name + '2'))
 )
+
+ILLEGAL_PREVIOUS_BASE_MOVES = {
+    "U": "D",
+    "D": "",
+    "F": "B",
+    "B": "",
+    "L": "R",
+    "R": ""
+}
