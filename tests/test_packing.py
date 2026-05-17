@@ -1,11 +1,3 @@
-"""Property tests for the cube model.
-
-Each test states an invariant that must hold for ANY cube state and ANY
-well-formed move sequence. When a property fails, your move tables or
-apply() logic are wrong — the test won't tell you which, but a failing
-test on a single move usually points straight at that move's definition.
-"""
-
 from itertools import permutations
 import pytest
 import random
