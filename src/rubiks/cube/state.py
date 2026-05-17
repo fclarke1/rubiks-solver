@@ -126,3 +126,10 @@ class CubeState(BaseModel):
             ep = tuple(self.ep[move.ep_perm[i]] for i in range(EDGE_COUNT)),
             eo = tuple((self.eo[move.ep_perm[i]] + move.eo_delta[i]) % EDGE_BASE for i in range(EDGE_COUNT))
         )
+
+
+    def apply_moves(self, moves: list[Move]) -> CubeState:
+        state = self
+        for m in moves:
+            state = state.apply(m)
+        return state

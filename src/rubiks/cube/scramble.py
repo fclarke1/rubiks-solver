@@ -1,5 +1,6 @@
 import random
 from rubiks.cube.moves import ALL_MOVES, Move
+from rubiks.cube.state import CubeState
 
 
 def scramble(length:int, seed:int|None = 42) -> list[Move]:
