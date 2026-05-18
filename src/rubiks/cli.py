@@ -20,7 +20,7 @@ from rubiks.cube.scramble import scramble
 from rubiks.cube.state import CubeState
 from rubiks.viz.ansi_net import render
 from rubiks.solver.ida_star import IDAStar
-from rubiks.solver.heuristic import ZeroHeuristic
+from rubiks.solver.heuristic import ZeroHeuristic, PoorCornerEdgeHeuristic
 
 _MOVES_BY_NAME: dict[str, Move] = {m.name: m for m in ALL_MOVES}
 
@@ -81,7 +81,14 @@ def cmd_solve(args: argparse.Namespace) -> None:
     print(f"Scrambled Cube: {moves_string}")
     print(render(scramble_state))
 
-    solver = IDAStar(ZeroHeuristic())
+    if args.heuristic == "zero":
+        heuristic = ZeroHeuristic
+    elif args.heuristic == "poor":
+        heuristic = PoorCornerEdgeHeuristic
+    else:
+        raise TypeError(f"heuristic {args.heuristic} not recognized")
+
+    solver = IDAStar(heuristic())
     unscramble_moves = solver.solve(scramble_state)
     unscramble_move_list = (m.name for m in unscramble_moves)
     unscramble_move_string = " ".join(unscramble_move_list)
@@ -110,7 +117,8 @@ def build_parser() -> argparse.ArgumentParser:
     p_show.set_defaults(func=cmd_show)
 
     p_solve = sub.add_parser("solve", help="Solve a scrambled cube")
-    p_solve.add_argument("moves", help='comma-seperated moves to solve, e.g. "R,U,R\',U\'"')
+    p_solve.add_argument("moves", type=str, help='comma-seperated moves to solve, e.g. "R,U,R\',U\'"')
+    p_solve.add_argument("--heuristic", type=str, help='heuristic used to complete solve, default=poor', choices=("zero", "poor"), default="zero")
     p_solve.set_defaults(func=cmd_solve)
 
     return parser

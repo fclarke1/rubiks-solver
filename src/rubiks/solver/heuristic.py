@@ -19,7 +19,7 @@ Future (phase 8):
 
 from __future__ import annotations
 
-from rubiks.cube.state import CubeState
+from rubiks.cube.state import CORNER_COUNT, EDGE_COUNT, CubeState
 
 
 class ZeroHeuristic:
@@ -28,3 +28,24 @@ class ZeroHeuristic:
     
     def estimate(self, state: CubeState) -> int:
         return 0
+
+
+class PoorCornerEdgeHeuristic:
+    """ Can move at most 4 corners or edges into the correct
+    place with 1 move
+    """
+    def estimate(self, state: CubeState) -> int:
+        corner_k = 0
+        edge_k = 0
+        for i in range(CORNER_COUNT):
+            if (
+                state.cp[i]!=i
+                or state.co[i]!=0
+            ): corner_k += 1
+        for i in range(EDGE_COUNT):
+            if (
+                state.ep[i]!=i
+                or state.eo[i]!=0
+            ): edge_k += 1
+        k = max(corner_k, edge_k) // 4
+        return k
