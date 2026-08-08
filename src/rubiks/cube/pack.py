@@ -58,6 +58,24 @@ def unpack_orientation(packed: int, length: int, base: int) -> tuple[int, ...]:
     return result
 
 
+# ------- corner packing --------
+def rank_corners(state:CubeState) -> int:
+    """pack a state into a unique number depending on it's corner states
+    """
+    return rank_permutation(state.cp) * _3_POW_7 +  pack_orientation(state.co[:7], CORNER_BASE)
+
+
+def unrank_corners(rank:int) -> tuple[tuple[int,...], tuple[int,...]]:
+    """convert ranked corner int back into a cubestate
+    """
+    ranked_cp, packed_co_first7 = divmod(rank, _3_POW_7)
+    co_first7 = unpack_orientation(packed_co_first7, CORNER_COUNT-1, CORNER_BASE)
+    cp = unrank_permutation(ranked_cp, CORNER_COUNT)
+    co_last = -sum(co_first7) % CORNER_BASE
+    co = co_first7 + (co_last,)
+    return cp, co
+
+
 # ----- permutation ranking (Lehmer code) -----
 
 
@@ -127,23 +145,3 @@ def unpack_state(packed: int) -> CubeState:
         eo = eo_short + (eo_last,)
     )
     return result_state
-
-
-# ----- corner-only ranking (PDB index) -----
-
-
-def rank_corners(state: CubeState) -> int:
-    """Map (cp, co) → an integer in 0..8!·3^7 - 1 = 0..88_179_839.
-
-    This is the index into the corner pattern database. Edges are ignored.
-    Combine cp rank (8! choices) with the 7 free corner-orientation digits
-    (3^7 choices) using the same scheme as pack_state — just the corner half.
-    """
-    raise NotImplementedError
-
-
-def unrank_corners(index: int) -> tuple[tuple[int, ...], tuple[int, ...]]:
-    """Inverse of rank_corners. Returns (cp, co) — orientation length 8 with
-    the conservation law applied to recover the 8th digit.
-    """
-    raise NotImplementedError

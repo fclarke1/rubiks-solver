@@ -4,7 +4,7 @@ import random
 import math
 
 from rubiks.cube.moves import ALL_MOVES
-from rubiks.cube.pack import pack_orientation, unpack_orientation, rank_permutation, unrank_permutation, pack_state, unpack_state
+from rubiks.cube.pack import pack_orientation, unpack_orientation, rank_permutation, unrank_permutation, pack_state, unpack_state, rank_corners, unrank_corners
 from rubiks.cube.state import CubeState, EDGE_COUNT, EDGE_BASE, CORNER_BASE, CORNER_COUNT
 
 
@@ -44,3 +44,30 @@ def test_cubestate_pack(seed:int):
     packed_state = pack_state(state)
     unpacked_state = unpack_state(packed_state)
     assert unpacked_state == state
+
+
+@pytest.mark.parametrize("seed", range(50))
+def test_pack_corners(seed:int):
+    rng = random.Random(seed)
+    moves = (rng.choice(ALL_MOVES) for _ in range(10))
+    state = CubeState.solved()
+    for m in moves:
+        state = state.apply(m)
+    ranked_corners = rank_corners(state)
+    unranked_cp, unranked_co = unrank_corners(ranked_corners)
+    assert (state.cp == unranked_cp) and (state.co == unranked_co)
+
+
+@pytest.mark.parametrize("seed",range(50))
+def test_unpack_corners(seed:int):
+    rng = random.Random(seed)
+    i = rng.randint(0,math.factorial(8))
+    cp, co = unrank_corners(i)
+    state = CubeState(
+        cp = cp,
+        co = co,
+        ep = tuple(range(12)),
+        eo = (0,) * 12
+    )
+    ranked_corners = rank_corners(state)
+    assert ranked_corners == i
