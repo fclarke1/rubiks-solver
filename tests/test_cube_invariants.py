@@ -37,7 +37,6 @@ def test_move_then_inverse_returns_to_solved(move):
 def test_sexy_move_test():
     """Famous combination of moves R U R' U' applied 6 times is the identity
     """
-    solved = CubeState.solved()
     R = BASE_MOVES_DICT['R']
     U = BASE_MOVES_DICT['U']
     R_inverse = inverse(R)
@@ -55,7 +54,7 @@ def test_random_walk_reverse(seed:int):
     walk_moves = tuple(rng.choice(ALL_MOVES) for i in range(50))
     state = CubeState.solved()
     for m in walk_moves:
-        state.apply(m)
+        state = state.apply(m)
     for m in reversed(walk_moves):
-        state.apply(inverse(m))
+        state = state.apply(inverse(m))
     assert state == CubeState.solved()
