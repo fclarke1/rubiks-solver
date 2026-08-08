@@ -9,24 +9,14 @@ test on a single move usually points straight at that move's definition.
 import pytest
 import random
 
-from rubiks.cube.moves import ALL_MOVES, BASE_MOVES_DICT, inverse, compose
-from rubiks.cube.state import CubeState
+from rubiks.cube.moves import ALL_MOVES, BASE_MOVES_DICT, G1_MOVES, inverse, compose
+from rubiks.cube.pack import rank_slice, SLICE_RANK_COUNT
+from rubiks.cube.state import CORNER_COUNT, EDGE_COUNT, CubeState
 
 
 @pytest.mark.parametrize("move", ALL_MOVES, ids=lambda m: m.name)
 def test_move_then_inverse_returns_to_solved(move):
     """Applying a move, then its inverse, must return the solved state.
-
-    This is the simplest non-trivial invariant. It exercises three things at
-    once, which is why it's a great early test:
-      1. apply() produces the correct successor state.
-      2. inverse() produces the correct undoing move.
-      3. CubeState equality works (free from frozen dataclass — but worth
-         confirming).
-
-    When this passes for all 18 moves, you have high confidence in your move
-    tables. When it fails, the failing parameter name tells you exactly which
-    move's definition is broken.
     """
     solved = CubeState.solved()
     after_move = solved.apply(move)

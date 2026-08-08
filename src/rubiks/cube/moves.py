@@ -159,6 +159,15 @@ ALL_MOVES: tuple[Move, ...] = tuple(
     for new_m in (base_m, inverse(base_m), compose(base_m, base_m, base_m.name + '2'))
 )
 
+# The generators of G1 = <U, D, L2, R2, F2, B2> — the subgroup the two-phase
+# solver enters at the end of phase 1 and never leaves during phase 2. Every
+# G1 move preserves corner orientation, edge orientation, and slice membership,
+# which is exactly what makes the phase-1 goal well defined.
+# Closed under inverse (U <-> U', the half turns are self-inverse).
+_G1_MOVE_NAMES = ("U", "U'", "U2", "D", "D'", "D2", "L2", "R2", "F2", "B2")
+G1_MOVES: tuple[Move, ...] = tuple(m for m in ALL_MOVES if m.name in _G1_MOVE_NAMES)
+
+
 ILLEGAL_PREVIOUS_BASE_MOVES = {
     "U": "D",
     "D": "",

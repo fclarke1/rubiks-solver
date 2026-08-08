@@ -25,9 +25,18 @@ duplicates, PDB lookups return random values). Test ruthlessly:
 
 from __future__ import annotations
 
-from math import factorial
-
-from rubiks.cube.state import CORNER_COUNT, EDGE_COUNT, CORNER_BASE, EDGE_BASE, CubeState
+from typing import Literal
+from math import comb, factorial
+from rubiks.cube.state import (
+    CORNER_COUNT,
+    EDGE_COUNT,
+    CORNER_BASE,
+    EDGE_BASE,
+    IS_SLICE_EDGE,
+    SLICE_COUNT,
+    SLICE_EDGES,
+    CubeState,
+)
 
 
 _3_POW_7 = 3**7
@@ -145,3 +154,58 @@ def unpack_state(packed: int) -> CubeState:
         eo = eo_short + (eo_last,)
     )
     return result_state
+
+
+# ----- slice packing (combinatorial number system) -----
+
+SLICE_RANK_COUNT = comb(EDGE_COUNT, SLICE_COUNT)
+
+
+def rank_slice(ep: tuple[int, ...]) -> int:
+    """Rank the set of slots occupied by the slice edges into 0..494 (unordered)
+    """
+    rank = 0
+    found = 0
+    for slot, cubie in enumerate(ep):
+        if IS_SLICE_EDGE[cubie]:
+            found += 1
+            rank += comb(slot, found)
+    return rank
+
+
+def unrank_slice(rank: int) -> tuple[int, ...]:
+    """Inverse of rank_slice, returning a REPRESENTATIVE edge permutation.
+
+    rank_slice throws information away, so there's no unique inverse. What
+    comes back is the canonical member of the rank's equivalence class: slice
+    cubies 8..11 in ascending occupied slots, cubies 0..7 in ascending order
+    everywhere else. It satisfies rank_slice(unrank_slice(r)) == r, which is
+    all the move-table builder needs — a move permutes slots, so the slice
+    slots after the move depend only on the slice slots before it, never on
+    which representative you started from.
+    """
+    if not 0 <= rank < SLICE_RANK_COUNT:
+        raise ValueError(f"slice rank must be in 0..{SLICE_RANK_COUNT - 1}, got {rank}")
+
+    # Peel off the largest term first: find the biggest slot whose binomial
+    # still fits in what's left of the rank, subtract, repeat.
+    occupied: list[int] = []
+    for k in range(SLICE_COUNT, 0, -1):
+        slot = k - 1
+        while comb(slot + 1, k) <= rank:
+            slot += 1
+        rank -= comb(slot, k)
+        occupied.append(slot)
+
+    is_occupied = set(occupied)
+    ep: list[int] = []
+    next_slice_cubie = SLICE_EDGES[0]
+    next_other_cubie = 0
+    for slot in range(EDGE_COUNT):
+        if slot in is_occupied:
+            ep.append(next_slice_cubie)
+            next_slice_cubie += 1
+        else:
+            ep.append(next_other_cubie)
+            next_other_cubie += 1
+    return tuple(ep)

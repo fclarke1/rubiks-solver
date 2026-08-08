@@ -63,6 +63,13 @@ EDGE_COUNT = 12
 CORNER_BASE = 3
 EDGE_BASE = 2
 
+# The four E-slice edges (FR, FL, BL, BR). Numbered last on purpose — the
+# two-phase solver leans on "is this cubie a slice edge?" in its hot paths,
+# and a contiguous block at the end makes that a single index.
+SLICE_EDGES = (8, 9, 10, 11)
+SLICE_COUNT = len(SLICE_EDGES)
+IS_SLICE_EDGE = tuple(e in SLICE_EDGES for e in range(EDGE_COUNT))
+
 # Precompute the solved state
 _SOLVED_CP = tuple(range(CORNER_COUNT))
 _SOLVED_CO = (0,) * CORNER_COUNT
