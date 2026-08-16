@@ -52,7 +52,8 @@ records which move set each table was built against — use it.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
+import dataclasses
 from math import factorial
 from typing import Callable
 
@@ -147,27 +148,38 @@ def slice_perm_coord(state: CubeState) -> int:
 
 def corner_ori_representative(coord: int) -> CubeState:
     """Unpack 7 base-3 digits, recover the 8th from -sum % 3, rest solved."""
-    raise NotImplementedError
+    unpacked = unpack_orientation(packed=coord, length=7, base=CORNER_BASE)
+    co = unpacked + (-sum(unpacked) % CORNER_BASE,)
+    solved = CubeState.solved()
+    return replace(solved, co=co)
 
 
 def edge_ori_representative(coord: int) -> CubeState:
     """Unpack 11 base-2 digits, recover the 12th from -sum % 2, rest solved."""
-    raise NotImplementedError
+    unpacked = unpack_orientation(packed=coord, length=11, base=2)
+    eo = unpacked + (-sum(unpacked) % EDGE_BASE,)
+    solved = CubeState.solved()
+    return replace(solved, eo=eo)
 
 
 def slice_representative(coord: int) -> CubeState:
     """unrank_slice already returns a representative ep. Rest solved."""
-    raise NotImplementedError
+    unrank = unrank_slice(coord)
+    return replace(CubeState.solved(), ep=unrank)
 
 
 def corner_perm_representative(coord: int) -> CubeState:
     """unrank_permutation into cp. Rest solved."""
-    raise NotImplementedError
+    unrank =  unrank_permutation(coord, CORNER_COUNT)
+    return replace(CubeState.solved(), cp=unrank)
+
 
 
 def ud_edge_perm_representative(coord: int) -> CubeState:
     """Unrank a permutation of range(8) into ep[:8]; slice edges stay home."""
-    raise NotImplementedError
+    unrank = unrank_permutation(coord, EDGE_COUNT - SLICE_COUNT)
+    ep = unrank + SLICE_EDGES
+    return replace(CubeState.solved(), ep=ep)
 
 
 def slice_perm_representative(coord: int) -> CubeState:
@@ -175,7 +187,10 @@ def slice_perm_representative(coord: int) -> CubeState:
 
     Non-slice edges stay in slots 0..7 in order.
     """
-    raise NotImplementedError
+    unrank = unrank_permutation(coord, SLICE_COUNT)
+    unrank = tuple(i + SLICE_EDGES[0] for i in unrank)
+    ep = tuple(range(EDGE_COUNT - SLICE_COUNT)) + unrank
+    return replace(CubeState.solved(), ep=ep)
 
 
 # ----- the registry -----
@@ -239,7 +254,12 @@ def build_move_table(coordinate: Coordinate) -> tuple[tuple[int, ...], ...]:
     before optimising; if it becomes annoying, cache to data/ the way the
     pruning tables will be.
     """
-    raise NotImplementedError
+def build_move_table(coordinate: Coordinate) -> tuple[tuple[int, ...], ...]:
+    rows = []
+    for c in range(coordinate.size):
+        state = coordinate.representative(c)
+        rows.append(tuple(coordinate.coord(state.apply(m)) for m in coordinate.moves))
+    return tuple(rows)
 
 
 _TABLE_CACHE: dict[str, tuple[tuple[int, ...], ...]] = {}
